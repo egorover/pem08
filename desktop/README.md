@@ -1,11 +1,22 @@
-# 🖥️ Мониторинг конкурентов - Desktop App
+# 🖥️ AI-Анализатор рынка онлайн-кинотеатров - Desktop App
 
-Десктопное приложение на PyQt6, полностью повторяющее функционал веб-интерфейса.
+Десктопное приложение на PyQt6 для анализа конкурентов в нише онлайн-кинотеатров (Кинопоиск, Иви, Wink и др.).
+
+Полностью повторяет функционал веб-интерфейса с нативным Windows GUI.
+
+## 📋 Особенности
+
+- **📝 Анализ текста** — оценка catalog_variety (разнообразие каталога)
+- **🖼️ Анализ изображений** — оценка animation_potential (потенциал для анимации)
+- **🌐 Парсинг сайта** — автоматический анализ интерфейсов конкурентов
+- **📋 История** — просмотр последних 10 запросов
+- **🎨 Современный UI** — тёмная тема с cyan акцентами
 
 ## 📋 Требования
 
 - Python 3.9+
 - Запущенный backend сервер (из корневой директории проекта)
+- ProxyAPI ключ для работы с AI
 
 ## 🚀 Быстрый старт
 
@@ -38,7 +49,27 @@ cd desktop
 python build.py
 ```
 
-После сборки файл `CompetitorMonitor.exe` будет в папке `dist/`.
+После сборки файл `CompetitorMonitor.exe` будет в папке `dist/` (размер ~38 MB).
+
+### Публикация на GitHub Releases
+
+1. Соберите .exe файл:
+   ```bash
+   python build.py
+   ```
+
+2. Зайдите в репозиторий на GitHub:
+   https://github.com/egorover/pem08
+
+3. Перейдите в раздел **Releases** → **Draft a new release**
+
+4. Заполните:
+   - **Tag version**: `v1.0.0` (или актуальную версию)
+   - **Release title**: `Desktop Application v1.0.0`
+   - **Description**: Описание изменений
+   - Нажмите **Choose a file** и выберите `dist/CompetitorMonitor.exe`
+
+5. Нажмите **Publish release**
 
 ### Очистка артефактов сборки
 
@@ -57,19 +88,27 @@ python build.py clean
 
 ```
 desktop/
-├── main.py          # Главное окно PyQt6
-├── styles.py        # Тёмная тема с cyan акцентами
-├── api_client.py    # HTTP клиент для backend API
-├── build.py         # Скрипт сборки .exe
-├── requirements.txt # Зависимости
-└── README.md        # Этот файл
+├── main.py           # Главное окно PyQt6
+├── styles.py         # Тёмная тема с cyan акцентами
+├── api_client.py     # HTTP клиент для backend API
+├── build.py          # Скрипт сборки .exe (PyInstaller)
+├── CompetitorMonitor.spec  # Конфигурация PyInstaller
+├── requirements.txt  # Зависимости
+└── README.md         # Эта документация
 ```
+
+## 📦 Файлы сборки
+
+- **build/** — временные файлы сборки (игнорируются в Git)
+- **dist/** — готовый .exe файл (игнорируется в Git)
+- ***.spec** — конфигурация PyInstaller
 
 ## ⚠️ Важно
 
 - Приложение требует запущенный backend на `http://localhost:8000`
 - При сборке .exe backend должен быть запущен отдельно
 - Для полностью автономного приложения нужно встроить backend (не реализовано)
+- Файлы `dist/` и `build/` игнорируются в `.gitignore`
 
 ## 🖼️ Скриншот
 
