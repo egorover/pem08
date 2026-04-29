@@ -72,22 +72,26 @@ class OpenAIService:
         logger.info(f"  Длина текста: {len(text)} символов")
         logger.info(f"  Превью: {text[:100]}...")
         logger.info(f"  Модель: {self.model}")
+
+       
         
-        system_prompt = """Ты — эксперт по конкурентному анализу. Проанализируй предоставленный текст конкурента и верни структурированный JSON-ответ.
+        system_prompt = """Ты — эксперт по маркетингу в онлайн-кинотеатрах. Проанализируй предоставленный текст конкурента и верни структурированный JSON-ответ.
 
 Формат ответа (строго JSON):
 {
     "strengths": ["сильная сторона 1", "сильная сторона 2", ...],
     "weaknesses": ["слабая сторона 1", "слабая сторона 2", ...],
-    "unique_offers": ["уникальное предложение 1", "уникальное предложение 2", ...],
+    "unique_offers": ["Уникальная фича 1", "Уникальная фича 2", ...],
     "recommendations": ["рекомендация 1", "рекомендация 2", ...],
-    "summary": "Краткое резюме анализа"
+    "summary": "Краткое резюме анализа",
+    "catalog_variety": 8
 }
 
 Важно:
 - Каждый массив должен содержать 3-5 пунктов
 - Пиши на русском языке
-- Будь конкретен и практичен в рекомендациях"""
+- Будь конкретен и практичен в рекомендациях
+- catalog_variety: оценка разнообразия каталога от 1 до 10"""
 
         start_time = time.time()
         logger.info("  Отправка запроса к API...")
@@ -117,7 +121,8 @@ class OpenAIService:
                 weaknesses=data.get("weaknesses", []),
                 unique_offers=data.get("unique_offers", []),
                 recommendations=data.get("recommendations", []),
-                summary=data.get("summary", "")
+                summary=data.get("summary", ""),
+                catalog_variety=data.get("catalog_variety")
             )
             
             logger.info(f"  Результат: {len(result.strengths)} сильных, {len(result.weaknesses)} слабых сторон")
@@ -139,7 +144,7 @@ class OpenAIService:
         logger.info(f"  MIME тип: {mime_type}")
         logger.info(f"  Модель: {self.vision_model}")
         
-        system_prompt = """Ты — эксперт по визуальному маркетингу и дизайну. Проанализируй изображение конкурента (баннер, сайт, упаковка товара и т.д.) и верни структурированный JSON-ответ.
+        system_prompt = """Ты — эксперт по визуальному маркетингу и дизайну онлайн-кинотеатров. Проанализируй изображение конкурента (баннер, интерфейс сайта, промо-материал) и верни структурированный JSON-ответ.
 
 Формат ответа (строго JSON):
 {
@@ -147,14 +152,16 @@ class OpenAIService:
     "marketing_insights": ["инсайт 1", "инсайт 2", ...],
     "visual_style_score": 7,
     "visual_style_analysis": "Анализ визуального стиля конкурента",
-    "recommendations": ["рекомендация 1", "рекомендация 2", ...]
+    "recommendations": ["рекомендация 1", "рекомендация 2", ...],
+    "animation_potential": 6
 }
 
 Важно:
 - visual_style_score от 0 до 10
 - Каждый массив должен содержать 3-5 пунктов
 - Пиши на русском языке
-- Оценивай: цветовую палитру, типографику, композицию, UX/UI элементы"""
+- Оценивай: цветовую палитру, типографику, композицию, UX/UI элементы
+- animation_potential: оценка того, насколько хорошо дизайн подходит для анимации в соцсетях (0-10)"""
 
         start_time = time.time()
         logger.info("  Отправка запроса к Vision API...")
@@ -197,7 +204,8 @@ class OpenAIService:
                 marketing_insights=data.get("marketing_insights", []),
                 visual_style_score=data.get("visual_style_score", 5),
                 visual_style_analysis=data.get("visual_style_analysis", ""),
-                recommendations=data.get("recommendations", [])
+                recommendations=data.get("recommendations", []),
+                animation_potential=data.get("animation_potential")
             )
             
             logger.info(f"  Результат: оценка стиля {result.visual_style_score}/10")
@@ -211,7 +219,7 @@ class OpenAIService:
             logger.error(f"  ✗ Ошибка Vision API за {elapsed:.2f} сек: {e}")
             logger.error("=" * 50)
             raise
-    
+
     async def analyze_parsed_content(
         self, 
         title: Optional[str], 
@@ -223,7 +231,7 @@ class OpenAIService:
         logger.info(f"  Title: {title[:50] if title else 'N/A'}...")
         logger.info(f"  H1: {h1[:50] if h1 else 'N/A'}...")
         logger.info(f"  Абзац: {paragraph[:50] if paragraph else 'N/A'}...")
-        
+
         content_parts = []
         if title:
             content_parts.append(f"Заголовок страницы (title): {title}")
@@ -337,7 +345,8 @@ class OpenAIService:
                 weaknesses=data.get("weaknesses", []),
                 unique_offers=data.get("unique_offers", []),
                 recommendations=data.get("recommendations", []),
-                summary=data.get("summary", "")
+                summary=data.get("summary", ""),
+                catalog_variety=data.get("catalog_variety")
             )
             
             logger.info(f"  Результат:")
