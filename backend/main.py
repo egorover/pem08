@@ -24,6 +24,7 @@ from backend.models.schemas import (
 from backend.services.openai_service import openai_service
 from backend.services.parser_service import parser_service
 from backend.services.history_service import history_service
+from backend.models.schemas import CompetitorAnalysis
 
 # Логгер для API
 logger = logging.getLogger("competitor_monitor.api")
@@ -343,6 +344,88 @@ async def health_check():
         "status": "healthy",
         "service": "Competitor Monitor",
         "version": "1.0.0"
+    }
+
+
+@app.post("/parse_all_competitors")
+async def parse_all_competitors():
+    """
+    Массовый парсинг всех конкурентов из списка конфигурации
+    Открывает Chrome, делает скриншоты и анализирует каждого конкурента
+    """
+    logger.info("=" * 50)
+    logger.info("🌐 API: МАССОВЫЙ ПАРСИНГ КОНКУРЕНТОВ")
+    logger.info(f"  Количество URL: {len(settings.competitors_urls)}")
+    logger.info(f"  URLs: {settings.competitors_urls}")
+    
+    results = []
+    
+    for url in settings.competitors_urls:
+        logger.info(f"  🔄 Обработка: {url}")
+        
+        try:
+            # Парсинг URL
+            title, h1, first_paragraph, screenshot_bytes, error = await parser_service.parse_url(url)
+            
+            if error:
+                logger.warning(f"  ⚠ Ошибка парсинга {url}: {error}")
+                results.append({
+                    "url": url,
+                    "success": False,
+                    "error": error,
+                    "analysis": None
+                })
+                continue
+            
+            # Анализируем сайт через Vision API
+            analysis = None
+            if screenshot_bytes:
+                screenshot_base64 = parser_service.screenshot_to_base64(screenshot_bytes)
+                analysis = await openai_service.analyze_website_screenshot(
+                    screenshot_base64=screenshot_base64,
+                    url=url,
+                    title=title,
+                    h1=h1,
+                    first_paragraph=first_paragraph
+                )
+            else:
+                logger.warning(f"  ⚠ Скриншот недоступен для {url}")
+            
+            results.append({
+                "url": url,
+                "success": True,
+                "title": title,
+                "h1": h1,
+                "analysis": analysis.dict() if analysis else None
+            })
+            
+            # Сохраняем каждый анализ в историю
+            if analysis:
+                history_service.add_entry(
+                    request_type="parse",
+                    request_summary=f"URL: {url}",
+                    response_summary=analysis.summary[:100] if analysis.summary else f"Title: {title or 'N/A'}"
+                )
+            
+            logger.info(f"  ✅ Успешно обработан: {url}")
+            
+        except Exception as e:
+            logger.error(f"  ❌ Ошибка при обработке {url}: {e}")
+            results.append({
+                "url": url,
+                "success": False,
+                "error": str(e),
+                "analysis": None
+            })
+    
+    logger.info("=" * 50)
+    logger.info(f"  📊 ИТОГО: {len([r for r in results if r.get('success')])} успешно, {len([r for r in results if not r.get('success')])} с ошибками")
+    logger.info("=" * 50)
+    
+    return {
+        "success": True,
+        "total": len(results),
+        "data": results
     }
 
 
