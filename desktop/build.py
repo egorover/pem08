@@ -7,6 +7,11 @@ import subprocess
 import shutil
 from pathlib import Path
 
+# Устанавливаем UTF-8 для вывода в консоли Windows
+if sys.stdout.encoding != 'utf-8':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 def build_exe():
     """Собрать .exe файл"""
